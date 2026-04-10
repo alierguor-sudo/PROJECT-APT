@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Energy Data - Energy Advisor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1><i class="fas fa-chart-line"></i> Add Your Energy Usage</h1>
+            <p class="subtitle">Tell me about your monthly energy consumption</p>
+            
+            <div class="info-box">
+                <i class="fas fa-lightbulb"></i> <strong>Where to find this info:</strong><br>
+                Check your recent utility bills (electricity, gas, water) for monthly usage numbers.
+            </div>
+            
+            <form id="energyForm">
+                <div class="form-group">
+                    <label for="month">Month *</label>
+                    <input type="month" id="month" name="month" required value="{{ current_month }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="electricity_kwh"><i class="fas fa-bolt"></i> Electricity Usage (kWh) *</label>
+                    <input type="number" id="electricity_kwh" name="electricity_kwh" step="10" required placeholder="e.g., 450">
+                    <small style="color: #666;">Average US home: 877 kWh/month</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gas_therms"><i class="fas fa-fire"></i> Natural Gas Usage (therms) *</label>
+                    <input type="number" id="gas_therms" name="gas_therms" step="5" required placeholder="e.g., 40">
+                    <small style="color: #666;">Average US home: 40 therms/month in winter</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="water_gallons"><i class="fas fa-faucet"></i> Water Usage (gallons) *</label>
+                    <input type="number" id="water_gallons" name="water_gallons" step="100" required placeholder="e.g., 3000">
+                    <small style="color: #666;">Average US home: 3,000 gallons/month</small>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Save & Get Recommendations</button>
+                    <button type="button" class="btn-cancel" onclick="window.location.href='/households'">← Skip for Now</button>
+                </div>
+                
+                <div class="success-message" id="successMsg"></div>
+                <div class="error-message" id="errorMsg"></div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('energyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const householdId = {{ household_id }};
+            
+            const data = {
+                month: document.getElementById('month').value,
+                electricity_kwh: parseFloat(document.getElementById('electricity_kwh').value),
+                gas_therms: parseFloat(document.getElementById('gas_therms').value),
+                water_gallons: parseFloat(document.getElementById('water_gallons').value)
+            };
+            
+            try {
+                const response = await fetch(`/api/energy-data/${householdId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('successMsg').innerHTML = 
+                        `<i class="fas fa-circle-check"></i> Great! Energy data saved. Redirecting to your personalized recommendations...`;
+                    document.getElementById('successMsg').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = `/household/${householdId}`;
+                    }, 2000);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                document.getElementById('errorMsg').innerHTML = `<i class="fas fa-circle-exclamation"></i> Error: ${error.message}`;
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

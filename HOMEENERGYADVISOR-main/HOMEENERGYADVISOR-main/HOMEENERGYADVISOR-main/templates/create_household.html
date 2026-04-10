@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Household - Energy Advisor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1><i class="fas fa-house"></i> Tell Me About Your Home</h1>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">
+                I'll use this information to give you personalized energy-saving advice
+            </p>
+            
+            <form id="householdForm">
+                <div class="form-group">
+                    <label for="name">What would you like to call your home? *</label>
+                    <input type="text" id="name" name="name" required placeholder="e.g., 'My House', 'The Cottage'">
+                </div>
+                
+                <div class="form-group">
+                    <label for="members">How many people live there? *</label>
+                    <input type="number" id="members" name="members" min="1" value="" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="square_feet">What's the size? (square feet) *</label>
+                    <input type="number" id="square_feet" name="square_feet" min="100" value="2000" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="climate_zone">Which climate describes your region? *</label>
+                    <select id="climate_zone" name="climate_zone" required>
+                        <option value="">-- Select your climate --</option>
+                        <option value="Cold">Cold (Northern, long winters)</option>
+                        <option value="Moderate" selected>Moderate (Mild seasons)</option>
+                        <option value="Hot">Hot (Warm year-round)</option>
+                        <option value="Sunny">Sunny (Great for solar)</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn-submit"><i class="fas fa-check"></i> Register My Home</button>
+                    <button type="button" class="btn-cancel" onclick="window.location.href='/'">← Go Back</button>
+                </div>
+                
+                <div class="success-message" id="successMsg"></div>
+                <div class="error-message" id="errorMsg"></div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('householdForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('name').value,
+                members: parseInt(document.getElementById('members').value),
+                square_feet: parseInt(document.getElementById('square_feet').value),
+                climate_zone: document.getElementById('climate_zone').value
+            };
+            
+            try {
+                const response = await fetch('/api/household', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('successMsg').innerHTML = 
+                        `<i class="fas fa-circle-check"></i> Perfect! "${data.name}" has been registered.<br><br>Next, add your energy usage data to get personalized recommendations!`;
+                    document.getElementById('successMsg').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = `/add-energy/${result.household_id}`;
+                    }, 2000);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                document.getElementById('errorMsg').innerHTML = `<i class="fas fa-circle-exclamation"></i> Hmm, something went wrong: ${error.message}`;
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
